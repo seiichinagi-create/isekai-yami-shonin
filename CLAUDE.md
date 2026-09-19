@@ -14,7 +14,7 @@
 
 ## 運用 — NAS が正、GitHub はミラー(オーナーの普段どおり)
 
-- **正は NAS の git**: `ssh://admin@192.168.11.6/volume1/git/isekai-yami-shonin.git`(リモート名 `nas`・`main` の追跡先)
+- **正は NAS の git**(リモート名 `nas`・`main` の追跡先。URL はオーナーの他の repo と同じ並びで、ここには書かない)
 - **GitHub `seiichinagi-create/isekai-yami-shonin`(PRIVATE)はミラー**(リモート名 `origin`)。職場PCは NAS に届かないので GitHub 経由
 - **作業実体は `C:\dev\isekai-yami-shonin`**。開発はローカルの Claude Code でやる
 - 節目ごとに `git push nas main` と `git push origin main` の両方
