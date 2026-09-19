@@ -15,7 +15,7 @@
 ## 運用 — NAS が正、GitHub はミラー(オーナーの普段どおり)
 
 - **正は NAS の git**(リモート名 `nas`・`main` の追跡先。URL はオーナーの他の repo と同じ並びで、ここには書かない)
-- **GitHub `seiichinagi-create/isekai-yami-shonin`(PRIVATE)はミラー**(リモート名 `origin`)。職場PCは NAS に届かないので GitHub 経由
+- **GitHub `seiichinagi-create/isekai-yami-shonin`(PUBLIC・2026-09-19 公開)はミラー**(リモート名 `origin`)。**公開なので、NAS の所在・個人情報・職場の情報をこの repo に書かない**。職場PCは NAS に届かないので GitHub 経由
 - **作業実体は `C:\dev\isekai-yami-shonin`**。開発はローカルの Claude Code でやる
 - 節目ごとに `git push nas main` と `git push origin main` の両方
 
