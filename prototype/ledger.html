@@ -195,6 +195,7 @@
 <header class="bar">
   <div class="bar-in">
     <span class="brand">迷宮都市の帳場</span>
+    <span class="stat"><span class="k">難易度</span><span class="v num" id="s-diff" style="font-size:12px">NORMAL</span></span>
     <span class="stat"><span class="k">週</span><span class="v num" id="s-week">1</span></span>
     <span class="stat"><span class="k">所持金</span><span class="v num" id="s-gold">600</span></span>
     <span class="stat"><span class="k">目利き</span><span class="v num" id="s-eye">0</span></span>
@@ -292,11 +293,24 @@
 
   var RENT = 45, WAGE = 30, GOAL = 2500, WEEKS = 12;
 
+  // 難易度。hit = 目利き Lv0 のとき、未鑑定の品を「丸ごと読み違えない」率。
+  // 段が上がるごとに +6 ポイント(従来どおり)。誤差の幅と呪いに気づく率は難易度で変えない。
+  var DIFFS = [
+    {id:"dboy",   n:"D-BOY",  hit:1.00, d:"見立ては必ず品そのものを見ている。残るのは誤差だけ。"},
+    {id:"easy",   n:"EASY",   hit:0.50, d:"二つに一つは、品でなく相場を見ている。"},
+    {id:"normal", n:"NORMAL", hit:0.33, d:"三つに一つしか当たらない。人を見て買うことになる。"},
+    {id:"hard",   n:"HARD",   hit:0.10, d:"見立てはほぼ飾り。鑑定料を払うか、目を育てるか。"}
+  ];
+  var LEGACY_HIT = 0.45;   // 難易度を入れる前のセーブはこの値で動いていた
+  function diffOf(id){ for(var i=0;i<DIFFS.length;i++) if(DIFFS[i].id===id) return DIFFS[i]; return null; }
+
   /* ========== 状態 ========== */
   var S, uid = 1;
 
-  function fresh(){
+  function fresh(diffId){
+    var df = diffOf(diffId) || diffOf("normal");
     return {
+      diff:df.id, hit0:df.hit,
       week:1, gold:600, exp:0,
       people:PEOPLE.map(function(p){return {id:p.id, rel:0};}),
       offers:[], stock:[], report:null, over:null, seen:{}
@@ -307,7 +321,8 @@
   function lv(){ return Math.floor(Math.log(1 + S.exp/3) / Math.log(1.7)); }
   function expFor(L){ return Math.ceil((Math.pow(1.7, L) - 1) * 3); }
   function errRate(){ return 0.45 * Math.pow(0.86, lv()); }        // 見立ての誤差
-  function missRate(){ return Math.max(0, 0.55 - lv()*0.06); }      // 丸ごと読み違える率
+  function hitRate(){ return Math.min(1, S.hit0 + lv()*0.06); }     // 見立てが品そのものを見ている率
+  function missRate(){ return 1 - hitRate(); }                      // 丸ごと読み違える率
   function curseEye(){ return Math.min(0.92, 0.12 + lv()*0.08); }   // 呪いに気づく率
 
   /* ========== 小物 ========== */
@@ -687,14 +702,16 @@
     var pct = Math.min(100, Math.max(0, (S.exp - cur) / Math.max(1, next - cur) * 100));
     document.getElementById("eye-meter").style.width = pct + "%";
     document.getElementById("eye-sub").innerHTML =
-      "Lv " + L + "。見立ての誤差 ±" + Math.round(errRate()*100) + "%、" +
-      "丸ごと読み違える率 " + Math.round(missRate()*100) + "%、" +
+      "Lv " + L + "。見立てが当たる率 " + Math.round(hitRate()*100) + "%" +
+      "（はじめは " + Math.round(S.hit0*100) + "%）、当たったときの誤差 ±" + Math.round(errRate()*100) + "%、" +
       "呪いに気づく率 " + Math.round(curseEye()*100) + "%。<br>" +
       "次の段まで <span class=\"num\">" + Math.max(0, next - S.exp) + "</span> ／ 品の正体が分かるたびに上がる。" +
       "<br><span style=\"color:var(--muted)\">段が一つ上がるたび、次の段には約1.7倍の学びが要る。効きは鈍っていく。</span>";
   }
 
   function render(){
+    var df = diffOf(S.diff);
+    document.getElementById("s-diff").textContent = df ? df.n : "旧";
     document.getElementById("s-week").textContent = S.week;
     var gv = document.getElementById("s-gold");
     gv.textContent = g(S.gold);
@@ -728,7 +745,33 @@
     '</div>';
     document.body.appendChild(d);
     document.getElementById("again").addEventListener("click", function(){
-      S = fresh(); newWeek(); render(); save();
+      chooseDiff();
+    });
+  }
+
+  // 難易度を選んで新しく始める。終わった店の上にも、初回にも出る。
+  function chooseDiff(){
+    var old = document.querySelector(".over");
+    if(old) old.remove();
+    var d = document.createElement("div");
+    d.className = "over";
+    d.innerHTML = '<div class="over-box">' +
+      '<h3>目利きの腕</h3>' +
+      '<p>店を開いた日に、未鑑定の品をどれだけ正しく見立てられるか。</p>' +
+      DIFFS.map(function(x){
+        return '<div class="acts" style="justify-content:center;margin-top:12px">' +
+          '<button class="' + (x.id === "normal" ? "primary" : "") + '" data-diff="' + x.id + '" style="min-width:220px">' +
+          esc(x.n) + ' ― <span class="num">' + Math.round(x.hit*100) + '%</span></button></div>' +
+          '<p style="font-size:11px;margin-top:4px">' + esc(x.d) + '</p>';
+      }).join("") +
+    '</div>';
+    document.body.appendChild(d);
+    d.addEventListener("click", function(ev){
+      var b = ev.target.closest("button[data-diff]");
+      if(!b) return;
+      d.remove();
+      S = fresh(b.dataset.diff); newWeek(); render(); save();
+      window.scrollTo({top:0});
     });
   }
 
@@ -744,6 +787,8 @@
       var d = JSON.parse(raw);
       if(!d || !d.s || typeof d.s.week !== "number") return false;
       S = d.s; uid = d.u || 1;
+      // 難易度を入れる前のセーブ。数字を黙って変えない: 当時の率のまま続けさせる
+      if(typeof S.hit0 !== "number"){ S.hit0 = LEGACY_HIT; S.diff = "legacy"; }
       // アイテム参照を復元（保存時はオブジェクトのコピーになっている）
       return true;
     }catch(e){ return false; }
@@ -781,7 +826,7 @@
   /* ========== 起動 ========== */
   function start(snap){
     if(snap && snap.S){ S = snap.S; uid = snap.uid || 1; }
-    else if(!load()){ S = fresh(); newWeek(); }
+    else if(!load()){ S = fresh("normal"); newWeek(); render(); chooseDiff(); return; }
     render();
   }
   start(null);
