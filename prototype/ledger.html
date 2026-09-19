@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+  :root{color-scheme:light dark}
+  [hidden]{display:none!important}
+</style>
+<title>迷宮都市の帳場</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+JP:wght@400;500;600&family=Shippori+Mincho:wght@500;600;700&display=swap">
+<style>
+  :root{
+    --paper:#E3E6E1;
+    --sheet:#F1F3EF;
+    --sheet-2:#E9ECE7;
+    --rule:#C4CAC3;
+    --rule-soft:#D5DAD3;
+    --ink:#1C2321;
+    --ink-2:#4A534E;
+    --muted:#737C76;
+    --verd:#2C6B5B;
+    --verd-soft:#DCE8E3;
+    --brass:#8A6C28;
+    --brass-soft:#EDE5CF;
+    --danger:#8E322C;
+    --danger-soft:#F0DCD9;
+    --shadow:rgba(28,35,33,.10);
+    --on-verd:#F1F3EF;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#101413;
+      --sheet:#181E1C;
+      --sheet-2:#1F2624;
+      --rule:#2E3835;
+      --rule-soft:#242D2B;
+      --ink:#DCE3DF;
+      --ink-2:#AEB8B3;
+      --muted:#838D88;
+      --verd:#5EBFA2;
+      --verd-soft:#16302A;
+      --brass:#C9A63F;
+      --brass-soft:#2C2616;
+      --danger:#D37066;
+      --danger-soft:#331E1C;
+      --shadow:rgba(0,0,0,.42);
+      --on-verd:#0C110F;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#101413;
+    --sheet:#181E1C;
+    --sheet-2:#1F2624;
+    --rule:#2E3835;
+    --rule-soft:#242D2B;
+    --ink:#DCE3DF;
+    --ink-2:#AEB8B3;
+    --muted:#838D88;
+    --verd:#5EBFA2;
+    --verd-soft:#16302A;
+    --brass:#C9A63F;
+    --brass-soft:#2C2616;
+    --danger:#D37066;
+    --danger-soft:#331E1C;
+    --shadow:rgba(0,0,0,.42);
+      --on-verd:#0C110F;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"IBM Plex Sans JP","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+    font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;
+  }
+  .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  .mincho{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif}
+
+  /* ---- top bar ---- */
+  .bar{
+    position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
+    background:var(--sheet);border-bottom:1px solid var(--rule);
+    box-shadow:0 1px 0 var(--shadow);
+  }
+  .bar-in{max-width:720px;margin:0 auto;padding:10px 16px;
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .brand{font-family:"Shippori Mincho",serif;font-weight:700;font-size:16px;letter-spacing:.06em;margin-right:auto;white-space:nowrap}
+  .stat{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+  .stat .k{font-size:10px;letter-spacing:.14em;color:var(--muted)}
+  .stat .v{font-size:16px;font-weight:600}
+  .stat .v.neg{color:var(--danger)}
+
+  /* ---- layout ---- */
+  main{max-width:720px;margin:0 auto;padding:0 16px;padding-block:18px 112px}
+  section{margin-bottom:30px}
+  h2{
+    font-family:"Shippori Mincho",serif;font-size:14px;font-weight:600;
+    letter-spacing:.18em;margin:0 0 2px;color:var(--ink);
+  }
+  .sub{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.55}
+  .sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+
+  /* ---- ledger rows ---- */
+  .row{padding:13px 14px;border-bottom:1px solid var(--rule-soft)}
+  .row:last-child{border-bottom:0}
+  .row-head{display:flex;align-items:flex-start;gap:10px}
+  .who{font-size:11px;letter-spacing:.1em;color:var(--muted);white-space:nowrap;padding-top:3px;min-width:74px}
+  .item{flex:1;min-width:0}
+  .item-name{font-family:"Shippori Mincho",serif;font-size:16px;font-weight:600;line-height:1.35;word-break:break-word}
+  .item-name.unk{color:var(--ink-2)}
+  .item-note{font-size:12px;color:var(--muted);margin-top:2px}
+  .figs{display:flex;gap:16px;margin-top:9px;flex-wrap:wrap}
+  .fig{min-width:0}
+  .fig .k{display:block;font-size:10px;letter-spacing:.12em;color:var(--muted)}
+  .fig .v{font-size:15px;font-weight:600}
+  .fig .v.est{color:var(--verd)}
+  .fig .v.ask{color:var(--brass)}
+
+  .chip{display:inline-block;font-size:10px;letter-spacing:.1em;padding:2px 7px;border-radius:2px;vertical-align:2px;margin-left:6px;white-space:nowrap}
+  .chip.warn{background:var(--danger-soft);color:var(--danger)}
+  .chip.shelf{background:var(--verd-soft);color:var(--verd)}
+  .chip.unk{background:var(--sheet-2);color:var(--muted)}
+  .chip.cursed{background:var(--danger-soft);color:var(--danger)}
+
+  /* ---- controls ---- */
+  .acts{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  button{
+    font-family:inherit;font-size:13px;line-height:1;
+    padding:9px 13px;border-radius:2px;border:1px solid var(--rule);
+    background:var(--sheet-2);color:var(--ink);cursor:pointer;
+  }
+  button:hover:not(:disabled){border-color:var(--ink-2)}
+  button:disabled{opacity:.4;cursor:default}
+  button:focus-visible{outline:2px solid var(--verd);outline-offset:2px}
+  button.primary{background:var(--verd);border-color:var(--verd);color:var(--on-verd);font-weight:500}
+  button.quiet{background:transparent;color:var(--muted)}
+  button.danger{color:var(--danger);border-color:var(--rule)}
+
+  .haggle{margin-top:11px;padding:11px 12px;background:var(--sheet-2);border:1px solid var(--rule-soft);border-radius:2px}
+  .haggle-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;color:var(--muted)}
+  .haggle-top strong{font-size:17px;color:var(--ink);font-weight:600}
+  input[type=range]{width:100%;margin:9px 0 4px;accent-color:var(--verd)}
+  .odds{font-size:11px;color:var(--muted)}
+
+  .priceset{display:flex;gap:7px;align-items:center;margin-top:11px;flex-wrap:wrap}
+  input[type=number]{
+    font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+    width:104px;padding:8px 10px;font-size:14px;
+    border:1px solid var(--rule);border-radius:2px;background:var(--paper);color:var(--ink);
+  }
+  input[type=number]:focus-visible{outline:2px solid var(--verd);outline-offset:1px}
+
+  /* ---- week report ---- */
+  .report{padding:14px}
+  .line{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dotted var(--rule-soft);font-size:13px}
+  .line:last-of-type{border-bottom:0}
+  .line .amt{font-weight:600;white-space:nowrap}
+  .line .amt.plus{color:var(--verd)}
+  .line .amt.minus{color:var(--danger)}
+  .total{display:flex;justify-content:space-between;gap:12px;margin-top:9px;padding-top:9px;border-top:1px solid var(--rule);font-size:15px;font-weight:600}
+
+  .empty{padding:20px 14px;color:var(--muted);font-size:13px;text-align:center}
+
+  /* ---- skill meter ---- */
+  .meter{height:3px;background:var(--rule-soft);border-radius:2px;overflow:hidden;margin-top:7px}
+  .meter i{display:block;height:100%;background:var(--verd)}
+
+  /* ---- bottom bar ---- */
+  .foot{
+    position:fixed;left:0;right:0;bottom:0;z-index:20;
+    background:var(--sheet);border-top:1px solid var(--rule);
+    padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  }
+  .foot-in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:12px}
+  .foot .hint{font-size:11px;color:var(--muted);flex:1;line-height:1.45}
+  .foot button{padding:11px 18px;font-size:14px}
+
+  /* ---- overlay ---- */
+  .over{position:fixed;inset:0;z-index:40;background:rgba(16,20,19,.72);display:flex;align-items:center;justify-content:center;padding:24px}
+  .over-box{background:var(--sheet);border:1px solid var(--rule);border-radius:3px;max-width:400px;width:100%;padding:24px;text-align:center}
+  .over-box h3{font-family:"Shippori Mincho",serif;font-size:20px;margin:0 0 10px;letter-spacing:.06em}
+  .over-box p{font-size:13px;color:var(--ink-2);margin:0 0 6px;line-height:1.7}
+  .over-box .big{font-size:30px;font-weight:600;margin:14px 0}
+
+  .foreword{font-size:13px;color:var(--ink-2);line-height:1.85;margin:0 0 26px;padding-bottom:22px;border-bottom:1px solid var(--rule)}
+  .foreword .mincho{font-size:15px;display:block;margin-bottom:6px;color:var(--ink)}
+  @media (prefers-reduced-motion:no-preference){.flash{animation:fl .5s ease-out}}
+  @keyframes fl{from{background:var(--verd-soft)}to{background:transparent}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <span class="brand">迷宮都市の帳場</span>
+    <span class="stat"><span class="k">週</span><span class="v num" id="s-week">1</span></span>
+    <span class="stat"><span class="k">所持金</span><span class="v num" id="s-gold">600</span></span>
+    <span class="stat"><span class="k">目利き</span><span class="v num" id="s-eye">0</span></span>
+  </div>
+</header>
+
+<main>
+  <p class="foreword">
+    <span class="mincho">第一章　店</span>
+    迷宮から上がってきた者が、戸を叩く。名も知れぬ品を差し出して、値を待っている。
+    こちらにできるのは見立てることだけで、見立ては大抵外れる。<strong id="goal-line">12週のうちに 2,500 G</strong> まで積めば、この店は続く。
+  </p>
+
+  <section>
+    <h2>持ち込み</h2>
+    <p class="sub" id="offers-sub">言い値はあちらの見立て。こちらの見立てと食い違うところに儲けがある。</p>
+    <div class="sheet" id="offers"></div>
+  </section>
+
+  <section>
+    <h2>在庫</h2>
+    <p class="sub">未鑑定の品は店頭に出せない。市場は引き取るが、危険の分だけ値を引く。</p>
+    <div class="sheet" id="stock"></div>
+  </section>
+
+  <section>
+    <h2>帳簿</h2>
+    <p class="sub">前の週に何が起きたか。</p>
+    <div class="sheet" id="report"></div>
+  </section>
+
+  <section>
+    <h2>目利き</h2>
+    <p class="sub" id="eye-sub"></p>
+    <div class="meter"><i id="eye-meter"></i></div>
+  </section>
+</main>
+
+<div class="foot">
+  <div class="foot-in">
+    <span class="hint" id="foot-hint"></span>
+    <button class="primary" id="end-week">週を終える</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ========== データ ========== */
+  var ITEMS = [
+    // 地上産
+    {n:"ダガー",c:"短剣",v:5,t:0},
+    {n:"樫の杖",c:"杖",v:10,t:0},
+    {n:"傷薬の瓶",c:"薬",v:12,t:0},
+    {n:"旅靴",c:"靴",v:18,t:0},
+    {n:"布の外套",c:"外套",v:15,t:0},
+    {n:"小円盾",c:"盾",v:20,t:0},
+    {n:"ロングソード",c:"長剣",v:25,t:0},
+    {n:"鉄槌",c:"斧槌",v:30,t:0},
+    {n:"手斧",c:"斧槌",v:35,t:0},
+    {n:"半兜",c:"兜",v:40,t:0},
+    {n:"革鎧",c:"鎧",v:50,t:0},
+    {n:"鎖帷子",c:"鎧",v:90,t:0},
+    // 迷宮産
+    {n:"銀朱の短剣",c:"短剣",v:420,t:1},
+    {n:"石工の小手",c:"小手",v:640,t:1},
+    {n:"無音の靴",c:"靴",v:780,t:1},
+    {n:"霜降りの長剣",c:"長剣",v:900,t:1},
+    {n:"深層の外套",c:"外套",v:1150,t:1},
+    {n:"蒼鉛の胸当",c:"鎧",v:1500,t:1},
+    {n:"骨細工の護符",c:"護符",v:1600,t:1},
+    {n:"燐光の指環",c:"指環",v:2200,t:1},
+    // 深層
+    {n:"竜鱗の盾",c:"盾",v:3400,t:2},
+    {n:"黙示の兜",c:"兜",v:4100,t:2},
+    {n:"影縫いの刃",c:"短剣",v:5200,t:2},
+    // 呪物
+    {n:"泣き笑いの剣",c:"長剣",v:0,look:900,x:1,t:1},
+    {n:"錆喰いの鎖",c:"鎧",v:0,look:1200,x:1,t:1},
+    {n:"宿酔の兜",c:"兜",v:0,look:700,x:1,t:1},
+    {n:"呪詛の法衣",c:"外套",v:0,look:1000,x:1,t:1},
+    {n:"死人指の環",c:"指環",v:0,look:1800,x:1,t:2}
+  ];
+
+  // 未鑑定品の「相場」。あちらの言い値はここから引く。
+  var CAT_BASE = {短剣:300,長剣:400,斧槌:300,盾:350,鎧:500,兜:350,外套:400,指環:600,護符:500,靴:300,小手:300,杖:250,薬:100};
+
+  var PEOPLE = [
+    {id:"kai", n:"カイ",       d:"浅い階しか潜らない若い剣士。毎週来る。", tier:[0,0,0,1], cnt:[1,2], rel:0},
+    {id:"duna",n:"ドゥナ",     d:"古参。目が利くので買い叩けない。",       tier:[0,1,1],   cnt:[1,2], rel:0},
+    {id:"yan", n:"六指のヤン", d:"素性が知れない。掴まされる率が高い。",   tier:[0,1,1,1], cnt:[1,2], rel:0},
+    {id:"mira",n:"灰のミラ",   d:"深層まで行ける唯一の腕。来ない週もある。",tier:[1,1,2],   cnt:[1,1], rel:0}
+  ];
+
+  var RENT = 45, WAGE = 30, GOAL = 2500, WEEKS = 12;
+
+  /* ========== 状態 ========== */
+  var S, uid = 1;
+
+  function fresh(){
+    return {
+      week:1, gold:600, exp:0,
+      people:PEOPLE.map(function(p){return {id:p.id, rel:0};}),
+      offers:[], stock:[], report:null, over:null, seen:{}
+    };
+  }
+
+  /* ========== 目利き ========== */
+  function lv(){ return Math.floor(Math.log(1 + S.exp/3) / Math.log(1.7)); }
+  function expFor(L){ return Math.ceil((Math.pow(1.7, L) - 1) * 3); }
+  function errRate(){ return 0.45 * Math.pow(0.86, lv()); }        // 見立ての誤差
+  function missRate(){ return Math.max(0, 0.55 - lv()*0.06); }      // 丸ごと読み違える率
+  function curseEye(){ return Math.min(0.92, 0.12 + lv()*0.08); }   // 呪いに気づく率
+
+  /* ========== 小物 ========== */
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function g(n){ return Math.round(n).toLocaleString("ja-JP"); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function person(id){ for(var i=0;i<PEOPLE.length;i++) if(PEOPLE[i].id===id) return PEOPLE[i]; }
+  function rel(id){ for(var i=0;i<S.people.length;i++) if(S.people[i].id===id) return S.people[i]; }
+
+  /* ========== 週の持ち込みを組む ========== */
+  function makeOffer(pid){
+    var p = person(pid), r = rel(pid);
+    var tier = pick(p.tier);
+    var pool = ITEMS.filter(function(it){ return it.t === tier; });
+    if(!pool.length) pool = ITEMS;
+    var it = pick(pool);
+
+    // 未鑑定かどうか。地上産の量産品は鑑定済みで持ち込まれる。呪物は必ず未鑑定。
+    var unknown = it.x ? true : (it.t === 0 ? Math.random() < 0.15 : Math.random() < 0.85);
+
+    var ask;
+    if(unknown){
+      // あちらもカテゴリの相場でしか値をつけられない
+      ask = (CAT_BASE[it.c] || 300) * rnd(0.42, 0.80);
+    } else {
+      ask = (it.x ? it.look : it.v) * rnd(0.52, 0.76);
+    }
+    ask = ask * (1 - r.rel * 0.012);              // 関係がよいほど素直な言い値
+    ask = Math.max(4, Math.round(ask / 5) * 5);
+
+    // こちらの見立て
+    var truth = it.x ? it.look : it.v;
+    var est, blind = false;
+    if(!unknown){
+      est = truth;
+    } else if(Math.random() < missRate()){
+      blind = true;
+      est = (CAT_BASE[it.c] || 300) * rnd(0.7, 1.3);
+    } else {
+      est = truth * (1 + (Math.random()*2 - 1) * errRate());
+    }
+    if(unknown) est = Math.max(3, Math.round(est / 5) * 5);
+
+    var hunch = it.x && Math.random() < curseEye();
+
+    return {
+      id: uid++, who: pid, item: it,
+      unknown: unknown, ask: ask, est: est, blind: blind, hunch: hunch
+    };
+  }
+
+  function newWeek(){
+    S.offers = [];
+    for(var i=0;i<PEOPLE.length;i++){
+      var p = PEOPLE[i], r = rel(p.id);
+      var show = p.id === "mira" ? 0.55 : 0.82 + r.rel*0.03;
+      if(r.rel <= -4) show -= 0.35;
+      if(Math.random() > show) continue;
+      var n = Math.round(rnd(p.cnt[0], p.cnt[1] + 0.49));
+      for(var k=0;k<n;k++) S.offers.push(makeOffer(p.id));
+    }
+    if(!S.offers.length) S.offers.push(makeOffer("kai"));
+  }
+
+  /* ========== 行動 ========== */
+  function truthOf(o){ return o.item.x ? 0 : o.item.v; }
+
+  function learn(n){ S.exp += n; }
+
+  function buy(offerId, price){
+    var i = S.offers.findIndex(function(o){ return o.id === offerId; });
+    if(i < 0) return;
+    var o = S.offers[i];
+    if(price > S.gold){ note("所持金が足りない。"); render(); return; }
+
+    var r = rel(o.who);
+    var ratio = price / o.ask;
+    if(ratio < 0.999){
+      var chance = Math.min(0.98, Math.max(0.02, (ratio - 0.55)/0.35 + r.rel*0.03));
+      if(Math.random() > chance){
+        r.rel -= 1;
+        S.offers.splice(i,1);
+        note(person(o.who).n + "は品を引っ込めた。");
+        render(); save(); return;
+      }
+      if(ratio < 0.75) r.rel -= 1;
+    } else if(ratio >= 0.95){ r.rel += 1; }
+
+    S.gold -= price;
+    S.stock.push({
+      id: uid++, item: o.item, cost: price,
+      unknown: o.unknown, hunch: o.hunch,
+      shelf: null, revealed: !o.unknown
+    });
+    S.offers.splice(i,1);
+    note(o.unknown ? "引き取った。中身はまだ分からない。" : ("「" + o.item.n + "」を引き取った。"));
+    render(); save();
+  }
+
+  function refuse(offerId){
+    var i = S.offers.findIndex(function(o){ return o.id === offerId; });
+    if(i < 0) return;
+    var o = S.offers[i];
+    rel(o.who).rel -= 0.5;
+    S.offers.splice(i,1);
+    render(); save();
+  }
+
+  function apprCost(st){
+    var base = st.item.x ? st.item.look : st.item.v;
+    return Math.max(25, Math.round(base * 0.15 / 5) * 5);
+  }
+
+  function appraise(stockId){
+    var st = S.stock.find(function(x){ return x.id === stockId; });
+    if(!st || st.revealed) return;
+    var c = apprCost(st);
+    if(c > S.gold){ note("鑑定料が払えない。"); render(); return; }
+    S.gold -= c;
+    st.revealed = true; st.unknown = false;
+    learn(2);
+    note(st.item.x
+      ? ("鑑定料 " + g(c) + " G。「" + st.item.n + "」― 呪われている。売り物にならない。")
+      : ("鑑定料 " + g(c) + " G。「" + st.item.n + "」、正価 " + g(st.item.v) + " G。"));
+    render(); save();
+  }
+
+  function toShelf(stockId, price){
+    var st = S.stock.find(function(x){ return x.id === stockId; });
+    if(!st || !st.revealed || st.item.x) return;
+    st.shelf = Math.max(1, Math.round(price));
+    render(); save();
+  }
+  function offShelf(stockId){
+    var st = S.stock.find(function(x){ return x.id === stockId; });
+    if(st){ st.shelf = null; render(); save(); }
+  }
+
+  function toMarket(stockId){
+    var i = S.stock.findIndex(function(x){ return x.id === stockId; });
+    if(i < 0) return;
+    var st = S.stock[i];
+    var take, msg;
+    if(!st.revealed){
+      take = Math.round(truthOf(st) * 0.40);
+      learn(1);
+      msg = st.item.x
+        ? ("市場は「" + st.item.n + "」を見抜いた。呪物は引き取らない。0 G。")
+        : ("市場へ。中身は「" + st.item.n + "」正価 " + g(st.item.v) + " G。未鑑定なので " + g(take) + " G。");
+    } else {
+      take = Math.round(truthOf(st) * 0.70);
+      msg = "市場へ。" + g(take) + " G。";
+    }
+    S.gold += take;
+    S.stock.splice(i,1);
+    note(msg); render(); save();
+  }
+
+  function discard(stockId){
+    var i = S.stock.findIndex(function(x){ return x.id === stockId; });
+    if(i < 0) return;
+    var st = S.stock[i];
+    var fee = 30;
+    S.gold -= fee;
+    if(!st.revealed){ st.revealed = true; learn(2); }
+    S.stock.splice(i,1);
+    note("処分料 " + g(fee) + " G。「" + st.item.n + "」は炉に入れた。");
+    render(); save();
+  }
+
+  /* ========== 週の締め ========== */
+  function sellChance(price, val){
+    var ratio = price / Math.max(1, val);
+    return Math.min(0.85, Math.max(0.02, 0.85 * Math.pow(0.5, Math.max(0, ratio - 0.8) * 4)));
+  }
+
+  function endWeek(){
+    var lines = [], income = 0;
+
+    // 店頭の売れ行き
+    for(var i = S.stock.length - 1; i >= 0; i--){
+      var st = S.stock[i];
+      if(st.shelf == null) continue;
+      if(Math.random() < sellChance(st.shelf, st.item.v)){
+        income += st.shelf;
+        lines.push({t:"店頭 ― " + st.item.n, a:st.shelf, s:1});
+        S.stock.splice(i,1);
+      }
+    }
+    if(!lines.length) lines.push({t:"店頭 ― 売れず", a:0, s:0});
+
+    lines.push({t:"家賃", a:-RENT, s:-1});
+    lines.push({t:"店番の賃金", a:-WAGE, s:-1});
+    S.gold += income - RENT - WAGE;
+
+    S.report = {week:S.week, lines:lines, net:income - RENT - WAGE};
+    S.week += 1;
+
+    if(S.gold < 0){ S.over = {win:false, why:"金が尽きた。"}; }
+    else if(S.gold >= GOAL){ S.over = {win:true, why:"店は続く。"}; }
+    else if(S.week > WEEKS){ S.over = {win:false, why:"期日が来た。" + g(GOAL) + " G に届かなかった。"}; }
+    else { newWeek(); }
+
+    render(); save();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  /* ========== 描画 ========== */
+  var msg = "";
+  function note(t){ msg = t; }
+
+  function estLine(o){
+    if(!o.unknown) return g(o.est) + " G";
+    var e = Math.round(errRate() * 100);
+    return "約 " + g(o.est) + " G <span class=\"num\" style=\"font-size:11px;color:var(--muted)\">±" + e + "%</span>";
+  }
+
+  function renderOffers(){
+    var el = document.getElementById("offers");
+    if(!S.offers.length){
+      el.innerHTML = '<div class="empty">今週の持ち込みは片づいた。</div>';
+      return;
+    }
+    el.innerHTML = S.offers.map(function(o){
+      var p = person(o.who);
+      var name = o.unknown
+        ? '<span class="item-name unk">? ' + esc(o.item.c) + '</span><span class="chip unk">未鑑定</span>'
+        : '<span class="item-name">' + esc(o.item.n) + '</span>';
+      if(o.hunch) name += '<span class="chip warn">嫌な感じがする</span>';
+
+      var rv = rel(o.who).rel;
+      var mood = rv >= 2 ? "よく来る" : (rv <= -2 ? "不機嫌" : "ふつう");
+      return '<div class="row" data-offer="' + o.id + '">' +
+        '<div class="row-head">' +
+          '<div class="who">' + esc(p.n) + '<br><span style="opacity:.75">' + mood + '</span></div>' +
+          '<div class="item">' + name +
+            '<div class="item-note">' + esc(p.d) + '</div>' +
+            '<div class="figs">' +
+              '<div class="fig"><span class="k">言い値</span><span class="v num ask">' + g(o.ask) + ' G</span></div>' +
+              '<div class="fig"><span class="k">' + (o.unknown ? "こちらの見立て" : "正価") + '</span><span class="v num est">' + estLine(o) + '</span></div>' +
+            '</div>' +
+            '<div class="acts">' +
+              '<button class="primary" data-act="buy" data-id="' + o.id + '">言い値で買う</button>' +
+              '<button data-act="haggle" data-id="' + o.id + '">値切る</button>' +
+              '<button class="quiet" data-act="refuse" data-id="' + o.id + '">断る</button>' +
+            '</div>' +
+            '<div class="haggle" id="hg-' + o.id + '" hidden></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function openHaggle(id){
+    var o = S.offers.find(function(x){ return x.id === id; });
+    if(!o) return;
+    var box = document.getElementById("hg-" + id);
+    if(!box.hidden){ box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML =
+      '<div class="haggle-top"><span>提示する額</span><strong class="num" id="hv-' + id + '">' + g(o.ask) + ' G</strong></div>' +
+      '<input type="range" id="hr-' + id + '" min="40" max="110" value="100" step="2" aria-label="提示する額">' +
+      '<div class="odds" id="ho-' + id + '"></div>' +
+      '<div class="acts"><button class="primary" data-act="offer" data-id="' + id + '">この額で持ちかける</button></div>';
+
+    var r = document.getElementById("hr-" + id);
+    var upd = function(){
+      var ratio = +r.value / 100;
+      var price = Math.max(1, Math.round(o.ask * ratio / 5) * 5);
+      document.getElementById("hv-" + id).textContent = g(price) + " G";
+      var ch = ratio >= 0.999 ? 1 : Math.min(0.98, Math.max(0.02, (ratio - 0.55)/0.35 + rel(o.who).rel*0.03));
+      document.getElementById("ho-" + id).innerHTML =
+        "受けてもらえる見込み <span class=\"num\">" + Math.round(ch*100) + "%</span>" +
+        (ratio < 0.75 ? " ・ 断られなくても機嫌は損ねる" : "");
+      r.dataset.price = price;
+    };
+    r.addEventListener("input", upd);
+    upd();
+  }
+
+  function renderStock(){
+    var el = document.getElementById("stock");
+    if(!S.stock.length){
+      el.innerHTML = '<div class="empty">在庫はない。</div>';
+      return;
+    }
+    el.innerHTML = S.stock.map(function(st){
+      var name, chips = "";
+      if(!st.revealed){
+        name = '<span class="item-name unk">? ' + esc(st.item.c) + '</span>';
+        chips += '<span class="chip unk">未鑑定</span>';
+        if(st.hunch) chips += '<span class="chip warn">嫌な感じがする</span>';
+      } else {
+        name = '<span class="item-name">' + esc(st.item.n) + '</span>';
+        if(st.item.x) chips += '<span class="chip cursed">呪われている</span>';
+      }
+      if(st.shelf != null) chips += '<span class="chip shelf">店頭 ' + g(st.shelf) + ' G</span>';
+
+      var figs = '<div class="figs">' +
+        '<div class="fig"><span class="k">仕入れ</span><span class="v num">' + g(st.cost) + ' G</span></div>' +
+        (st.revealed && !st.item.x
+          ? '<div class="fig"><span class="k">正価</span><span class="v num est">' + g(st.item.v) + ' G</span></div>'
+          : '') +
+        '</div>';
+
+      var acts = '<div class="acts">';
+      if(!st.revealed){
+        acts += '<button data-act="appraise" data-id="' + st.id + '">鑑定に出す（' + g(apprCost(st)) + ' G）</button>';
+      }
+      if(st.revealed && !st.item.x){
+        if(st.shelf == null){
+          acts += '<button class="primary" data-act="shelf" data-id="' + st.id + '">店頭に出す</button>';
+        } else {
+          acts += '<button data-act="unshelf" data-id="' + st.id + '">値を付け直す</button>';
+        }
+      }
+      if(st.shelf == null){
+        acts += '<button data-act="market" data-id="' + st.id + '">市場に流す</button>';
+      }
+      if(st.revealed && st.item.x){
+        acts += '<button class="danger" data-act="discard" data-id="' + st.id + '">処分する（30 G）</button>';
+      }
+      acts += '</div>';
+
+      var setter = (st.revealed && !st.item.x && st.shelf == null)
+        ? '<div class="priceset" id="ps-' + st.id + '" hidden>' +
+            '<input type="number" id="pi-' + st.id + '" value="' + st.item.v + '" min="1" step="5" aria-label="店頭価格">' +
+            '<button class="primary" data-act="setprice" data-id="' + st.id + '">この値で並べる</button>' +
+            '<span class="odds" id="pc-' + st.id + '"></span>' +
+          '</div>'
+        : '';
+
+      return '<div class="row">' +
+        '<div class="row-head"><div class="item">' + name + chips + figs + acts + setter + '</div></div>' +
+      '</div>';
+    }).join("");
+  }
+
+  function openPrice(id){
+    var box = document.getElementById("ps-" + id);
+    if(!box) return;
+    box.hidden = false;
+    var st = S.stock.find(function(x){ return x.id === id; });
+    var inp = document.getElementById("pi-" + id);
+    var out = document.getElementById("pc-" + id);
+    var upd = function(){
+      var v = Math.max(1, +inp.value || 1);
+      out.innerHTML = "毎週 <span class=\"num\">" + Math.round(sellChance(v, st.item.v)*100) + "%</span> で売れる見込み";
+    };
+    inp.addEventListener("input", upd);
+    upd();
+    inp.focus();
+  }
+
+  function renderReport(){
+    var el = document.getElementById("report");
+    if(!S.report){
+      el.innerHTML = '<div class="empty">まだ一週も終えていない。</div>';
+      return;
+    }
+    var r = S.report;
+    el.innerHTML = '<div class="report">' +
+      r.lines.map(function(l){
+        var cls = l.s > 0 ? "plus" : (l.s < 0 ? "minus" : "");
+        var amt = l.a === 0 ? "―" : (l.a > 0 ? "+" : "−") + g(Math.abs(l.a)) + " G";
+        return '<div class="line"><span>' + esc(l.t) + '</span><span class="amt num ' + cls + '">' + amt + '</span></div>';
+      }).join("") +
+      '<div class="total"><span>第' + r.week + '週 差引</span><span class="num" style="color:' + (r.net >= 0 ? "var(--verd)" : "var(--danger)") + '">' +
+        (r.net >= 0 ? "+" : "−") + g(Math.abs(r.net)) + ' G</span></div>' +
+    '</div>';
+  }
+
+  function renderEye(){
+    var L = lv();
+    var cur = expFor(L), next = expFor(L+1);
+    var pct = Math.min(100, Math.max(0, (S.exp - cur) / Math.max(1, next - cur) * 100));
+    document.getElementById("eye-meter").style.width = pct + "%";
+    document.getElementById("eye-sub").innerHTML =
+      "Lv " + L + "。見立ての誤差 ±" + Math.round(errRate()*100) + "%、" +
+      "丸ごと読み違える率 " + Math.round(missRate()*100) + "%、" +
+      "呪いに気づく率 " + Math.round(curseEye()*100) + "%。<br>" +
+      "次の段まで <span class=\"num\">" + Math.max(0, next - S.exp) + "</span> ／ 品の正体が分かるたびに上がる。" +
+      "<br><span style=\"color:var(--muted)\">段が一つ上がるたび、次の段には約1.7倍の学びが要る。効きは鈍っていく。</span>";
+  }
+
+  function render(){
+    document.getElementById("s-week").textContent = S.week;
+    var gv = document.getElementById("s-gold");
+    gv.textContent = g(S.gold);
+    gv.className = "v num" + (S.gold < 0 ? " neg" : "");
+    document.getElementById("s-eye").textContent = lv();
+    document.getElementById("goal-line").innerHTML =
+      WEEKS + "週のうちに " + g(GOAL) + " G";
+
+    renderOffers(); renderStock(); renderReport(); renderEye();
+
+    var hint = document.getElementById("foot-hint");
+    var remain = WEEKS - S.week + 1;
+    hint.textContent = msg || ("残り " + remain + " 週。目標まで " + g(Math.max(0, GOAL - S.gold)) + " G。");
+    msg = "";
+
+    renderOver();
+  }
+
+  function renderOver(){
+    var old = document.querySelector(".over");
+    if(old) old.remove();
+    if(!S.over) return;
+    var d = document.createElement("div");
+    d.className = "over";
+    d.innerHTML = '<div class="over-box">' +
+      '<h3>' + (S.over.win ? "帳尻が合った" : "店じまい") + '</h3>' +
+      '<p>' + esc(S.over.why) + '</p>' +
+      '<div class="big num">' + g(S.gold) + ' G</div>' +
+      '<p>第' + Math.min(S.week, WEEKS) + '週まで。目利き Lv ' + lv() + '。</p>' +
+      '<div class="acts" style="justify-content:center"><button class="primary" id="again">もう一度はじめる</button></div>' +
+    '</div>';
+    document.body.appendChild(d);
+    document.getElementById("again").addEventListener("click", function(){
+      S = fresh(); newWeek(); render(); save();
+    });
+  }
+
+  /* ========== 保存 ========== */
+  var KEY = "ledger.ch1.v1";
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify({s:S, u:uid})); }catch(e){}
+  }
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return false;
+      var d = JSON.parse(raw);
+      if(!d || !d.s || typeof d.s.week !== "number") return false;
+      S = d.s; uid = d.u || 1;
+      // アイテム参照を復元（保存時はオブジェクトのコピーになっている）
+      return true;
+    }catch(e){ return false; }
+  }
+
+  /* ========== 入力 ========== */
+  document.addEventListener("click", function(ev){
+    var b = ev.target.closest("button[data-act]");
+    if(!b) return;
+    var id = +b.dataset.id, act = b.dataset.act;
+    if(act === "buy"){
+      var o = S.offers.find(function(x){ return x.id === id; });
+      if(o) buy(id, o.ask);
+    } else if(act === "haggle"){ openHaggle(id);
+    } else if(act === "offer"){
+      var r = document.getElementById("hr-" + id);
+      buy(id, +r.dataset.price);
+    } else if(act === "refuse"){ refuse(id);
+    } else if(act === "appraise"){ appraise(id);
+    } else if(act === "shelf"){ openPrice(id);
+    } else if(act === "setprice"){
+      var inp = document.getElementById("pi-" + id);
+      toShelf(id, +inp.value); save();
+    } else if(act === "unshelf"){ offShelf(id);
+    } else if(act === "market"){ toMarket(id);
+    } else if(act === "discard"){ discard(id);
+    }
+  });
+
+  document.getElementById("end-week").addEventListener("click", function(){
+    if(S.over) return;
+    endWeek();
+  });
+
+  /* ========== 起動 ========== */
+  function start(snap){
+    if(snap && snap.S){ S = snap.S; uid = snap.uid || 1; }
+    else if(!load()){ S = fresh(); newWeek(); }
+    render();
+  }
+  start(null);
+})();
+</script>
+</body>
+</html>
