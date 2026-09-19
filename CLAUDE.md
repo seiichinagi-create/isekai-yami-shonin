@@ -12,18 +12,16 @@
 
 **目的はクリアしないこと。** 前線が崩れて世界が滅んでも負け、魔王が討たれて需要が消えても負けです。
 
-## ⚠️ このリポジトリの運用は、オーナーの普段のやり方の「例外」です
+## 運用 — NAS が正、GitHub はミラー(オーナーの普段どおり)
 
-オーナー(SN)の通常の構成は **ローカル/NAS の git が正、必要なものだけ GitHub、職場PCとは GitHub 経由** です。
-**このプロジェクトだけは違います。**
+- **正は NAS の git**: `ssh://admin@192.168.11.6/volume1/git/isekai-yami-shonin.git`(リモート名 `nas`・`main` の追跡先)
+- **GitHub `seiichinagi-create/isekai-yami-shonin`(PRIVATE)はミラー**(リモート名 `origin`)。職場PCは NAS に届かないので GitHub 経由
+- **作業実体は `C:\dev\isekai-yami-shonin`**。開発はローカルの Claude Code でやる
+- 節目ごとに `git push nas main` と `git push origin main` の両方
 
-- **GitHub が正**。`seiichinagi-create/isekai-yami-shonin` が唯一の正本
-- **NAS には置かない**。NAS 側にコピーを作らない
-- **clone 先は `C:\dev\isekai-yami-shonin`**
-- 自宅PC・職場PC・クラウド側のスレッドは、すべて GitHub を経由して合流する
-
-この例外は 2026-09-19 にオーナー自身が決めたものです。理由は、クラウドで動くセッションが NAS にも各PCにも届かず、GitHub にしか手が出せないためです。
-オーナーから「これも NAS に入れておいて」「ローカルを正にしよう」といった話が出たら、**この例外を思い出させてください**。本人からそう頼まれています。
+経緯: 2026-09-19 の起草時は「GitHub が唯一の正・NAS に置かない」という例外だった(企画を claude.ai のプロジェクトスレッドで起こしたため)。
+同日夜、オーナーが**撤回**した。クラウド側のプロジェクト環境では GitHub を満足に扱えず、当初の見極めが済んだので普段の構成へ戻す、という裁定。
+**クラウド側のスレッドで何か書いた場合は、ローカルへ取り込んで NAS へ入れ直すこと**(GitHub へ直接 push された変更があれば、先に `git fetch origin` で確かめる)。
 
 ## 構成
 
