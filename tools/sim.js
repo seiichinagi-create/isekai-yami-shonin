@@ -15,7 +15,7 @@ process.argv.slice(4).forEach(a => { const [k, v] = a.split("="); over[k] = v; }
 let src = fs.readFileSync(file, "utf8");
 src = src.split("<script>")[1].split("</script>")[0];
 for (const k of Object.keys(over)) {
-  if (k === "DIFFS") continue;
+  if (k === "DIFFS" || k === "MELT") continue;
   const re = new RegExp("(\\b" + k + "\\s*=\\s*)[-0-9.]+");
   if (!re.test(src)) { console.error("no constant " + k); process.exit(1); }
   src = src.replace(re, "$1" + over[k]);
@@ -45,6 +45,7 @@ function playOne(pol, seed, diff) {
   const stat = { windfall: 0, maxDepth: 1, weapons: 0, deep: 0, g3: null };
   let guard = 0;
   while (!G.S.over && guard++ < 40) {
+    if (MELT && G.S.sight && G.S.week >= MELT) G.S.sight = false;
     const S = G.S;
     for (const o of S.offers.slice()) {
       const price = Math.round(o.ask * 0.9 / 5) * 5;
@@ -76,6 +77,7 @@ function playOne(pol, seed, diff) {
 }
 
 function pct(a, q) { return a.length ? a[Math.min(a.length - 1, Math.floor(a.length * q))] : "-"; }
+const MELT = +(over.MELT || 0);   // D-BOY dissolves at this week: his curse sight goes with him
 const diffs = (over.DIFFS || "dboy,normal,hard").split(",");
 for (const diff of diffs) {
   console.log("== " + diff);
