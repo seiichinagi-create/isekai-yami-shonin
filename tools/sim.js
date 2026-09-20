@@ -36,6 +36,7 @@ const G = globalThis.__G;
 const POLICIES = {
   "blind (buy every unknown at 90%)":        { needEst: false, ground: false },
   "est>ask only":                              { needEst: true,  ground: false },
+  "est>ask + skip 'cursed?' flag":            { needEst: true,  ground: false, skipHunch: true },
 };
 
 function playOne(pol, seed, diff) {
@@ -48,6 +49,7 @@ function playOne(pol, seed, diff) {
     for (const o of S.offers.slice()) {
       const price = Math.round(o.ask * 0.9 / 5) * 5;
       if (price > S.gold) continue;
+      if (pol.skipHunch && o.hunch) continue;
       if (o.unknown) { if (pol.needEst && !(o.est > o.ask)) continue; }
       else if (o.item.v * 0.6 < price) continue;
       if (!o.unknown && !pol.ground && o.item.t === 0) continue;
@@ -89,8 +91,8 @@ for (const diff of diffs) {
       if (r.g3 !== null) { if (r.g3 < 900) { lowN++; if (r.win) lowW++; } else { hiN++; if (r.win) hiW++; } }
     }
     wk.sort((a, b) => a - b);
-    console.log("  " + name.padEnd(28) + " win " + (100 * w / N).toFixed(1).padStart(5) + "%  broke " + (100 * b / N).toFixed(1).padStart(5) + "%  timeout " + (100 * t / N).toFixed(1).padStart(4) + "%  win week p10/50/90 " + pct(wk, .1) + "/" + pct(wk, .5) + "/" + pct(wk, .9));
-    console.log("  " + "".padEnd(28) + " depth mean " + (dp / N).toFixed(2) + "  >=3: " + (100 * d3 / N).toFixed(0) + "%  >=4: " + (100 * d4 / N).toFixed(0) + "%  | bought floor>=4 in " + (100 * wfN / N).toFixed(1) + "% of games  | bought a floor>=depth+2 item in " + (100 * deepN / N).toFixed(1) + "% (win " + (deepN ? (100 * deepWin / deepN).toFixed(0) : "-") + "%)");
-    console.log("  " + "".padEnd(28) + " gold after wk3: <900 -> win " + (lowN ? (100 * lowW / lowN).toFixed(0) : "-") + "% (" + (100 * lowN / N).toFixed(0) + "% of games)  >=900 -> win " + (hiN ? (100 * hiW / hiN).toFixed(0) : "-") + "%");
+    console.log("  " + name.padEnd(34) + " win " + (100 * w / N).toFixed(1).padStart(5) + "%  broke " + (100 * b / N).toFixed(1).padStart(5) + "%  timeout " + (100 * t / N).toFixed(1).padStart(4) + "%  win week p10/50/90 " + pct(wk, .1) + "/" + pct(wk, .5) + "/" + pct(wk, .9));
+    console.log("  " + "".padEnd(34) + " depth mean " + (dp / N).toFixed(2) + "  >=3: " + (100 * d3 / N).toFixed(0) + "%  >=4: " + (100 * d4 / N).toFixed(0) + "%  | bought floor>=4 in " + (100 * wfN / N).toFixed(1) + "% of games  | bought a floor>=depth+2 item in " + (100 * deepN / N).toFixed(1) + "% (win " + (deepN ? (100 * deepWin / deepN).toFixed(0) : "-") + "%)");
+    console.log("  " + "".padEnd(34) + " gold after wk3: <900 -> win " + (lowN ? (100 * lowW / lowN).toFixed(0) : "-") + "% (" + (100 * lowN / N).toFixed(0) + "% of games)  >=900 -> win " + (hiN ? (100 * hiW / hiN).toFixed(0) : "-") + "%");
   }
 }

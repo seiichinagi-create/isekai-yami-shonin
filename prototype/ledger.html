@@ -300,14 +300,14 @@
   // 迷宮の攻略度。武器が売れる(店頭・市場)たびに、威力に比例した確率で冒険者が一階深く潜る。
   // 持ち込まれる迷宮産の品の階は「その人が探索している階 + ずれ」。ずれは 0 が最多で、+1・+2 はごく稀。
   var MAXFLOOR = 6;                 // 攻略度の上限(最深)
-  var POWER_SCALE = 1500;           // 武器の正価 / この値 = 一階進む確率(上限 0.6)
+  var POWER_SCALE = 3000;           // 武器の正価 / この値 = 一階進む確率(上限 0.6)
   var SHIFT1 = 0.09, SHIFT2 = 0.01; // 探索階より 1 階・2 階深い品が混じる率
   var WEAPON = {短剣:1, 長剣:1, 斧槌:1, 杖:1};
 
   // 難易度。hit = 目利き Lv0 のとき、未鑑定の品を「丸ごと読み違えない」率。
   // 段が上がるごとに +6 ポイント(従来どおり)。誤差の幅と呪いに気づく率は難易度で変えない。
   var DIFFS = [
-    {id:"dboy",   n:"D-BOY",  hit:1.00, d:"見立ては必ず品そのものを見ている。残るのは誤差だけ。"},
+    {id:"dboy",   n:"D-BOY",  hit:1.00, sight:true, noTrue:true, d:"見立ては必ず品そのものを見ている。呪われた品も必ず見抜ける。見抜けるのは、この者自身が呪われているから。真の結末には届かない。"},
     {id:"easy",   n:"EASY",   hit:0.50, d:"二つに一つは、品でなく相場を見ている。"},
     {id:"normal", n:"NORMAL", hit:0.33, d:"三つに一つしか当たらない。人を見て買うことになる。"},
     {id:"hard",   n:"HARD",   hit:0.10, d:"見立てはほぼ飾り。鑑定料を払うか、目を育てるか。"}
@@ -321,7 +321,7 @@
   function fresh(diffId){
     var df = diffOf(diffId) || diffOf("normal");
     return {
-      diff:df.id, hit0:df.hit,
+      diff:df.id, hit0:df.hit, sight:!!df.sight, noTrue:!!df.noTrue,
       week:1, gold:START_GOLD, goal:GOAL, depth:1, estOff:0, exp:0,
       people:PEOPLE.map(function(p){return {id:p.id, rel:0};}),
       offers:[], stock:[], report:null, over:null, seen:{}
@@ -334,7 +334,7 @@
   function errRate(){ return 0.45 * Math.pow(0.86, lv()); }        // 見立ての誤差
   function hitRate(){ return Math.min(1, S.hit0 + lv()*0.06); }     // 見立てが品そのものを見ている率
   function missRate(){ return 1 - hitRate(); }                      // 丸ごと読み違える率
-  function curseEye(){ return Math.min(0.92, 0.12 + lv()*0.08); }   // 呪いに気づく率
+  function curseEye(){ return S.sight ? 1 : Math.min(0.92, 0.12 + lv()*0.08); }   // 呪いに気づく率(D-BOY は必ず)
 
   /* ========== 小物 ========== */
   function rnd(a,b){ return a + Math.random()*(b-a); }
@@ -559,7 +559,7 @@
     S.estOff = pick([-1, 0, 0, 1]);
 
     if(S.gold < 0){ S.over = {win:false, why:"金が尽きた。"}; }
-    else if(S.gold >= S.goal){ S.over = {win:true, why:"店は続く。"}; }
+    else if(S.gold >= S.goal){ S.over = {win:true, why:S.noTrue ? "店は続く。ただし、呪われた者に真の結末は来ない。" : "店は続く。"}; }
     else if(S.week > WEEKS){ S.over = {win:false, why:"期日が来た。" + g(S.goal) + " G に届かなかった。"}; }
     else { newWeek(); }
 
@@ -588,7 +588,7 @@
       var name = o.unknown
         ? '<span class="item-name unk">? ' + esc(o.item.c) + '</span><span class="chip unk">未鑑定</span>'
         : '<span class="item-name">' + esc(o.item.n) + '</span>';
-      if(o.hunch) name += '<span class="chip warn">嫌な感じがする</span>';
+      if(o.hunch) name += S.sight ? '<span class="chip cursed">呪われている</span>' : '<span class="chip warn">嫌な感じがする</span>';
 
       var rv = rel(o.who).rel;
       var mood = rv >= 2 ? "よく来る" : (rv <= -2 ? "不機嫌" : "ふつう");
@@ -651,7 +651,7 @@
       if(!st.revealed){
         name = '<span class="item-name unk">? ' + esc(st.item.c) + '</span>';
         chips += '<span class="chip unk">未鑑定</span>';
-        if(st.hunch) chips += '<span class="chip warn">嫌な感じがする</span>';
+        if(st.hunch) chips += S.sight ? '<span class="chip cursed">呪われている</span>' : '<span class="chip warn">嫌な感じがする</span>';
       } else {
         name = '<span class="item-name">' + esc(st.item.n) + '</span>';
         if(st.item.x) chips += '<span class="chip cursed">呪われている</span>';
@@ -740,7 +740,7 @@
     document.getElementById("eye-sub").innerHTML =
       "Lv " + L + "。見立てが当たる率 " + Math.round(hitRate()*100) + "%" +
       "（はじめは " + Math.round(S.hit0*100) + "%）、当たったときの誤差 ±" + Math.round(errRate()*100) + "%、" +
-      "呪いに気づく率 " + Math.round(curseEye()*100) + "%。<br>" +
+      (S.sight ? "呪いは必ず見抜く。<br>" : "呪いに気づく率 " + Math.round(curseEye()*100) + "%。<br>") +
       "次の段まで <span class=\"num\">" + Math.max(0, next - S.exp) + "</span> ／ 品の正体が分かるたびに上がる。" +
       "<br><span style=\"color:var(--muted)\">段が一つ上がるたび、次の段には約1.7倍の学びが要る。効きは鈍っていく。</span>";
   }
