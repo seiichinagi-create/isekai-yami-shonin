@@ -197,7 +197,8 @@
     <span class="brand">迷宮都市の帳場</span>
     <span class="stat"><span class="k">難易度</span><span class="v num" id="s-diff" style="font-size:12px">NORMAL</span></span>
     <span class="stat"><span class="k">週</span><span class="v num" id="s-week">1</span></span>
-    <span class="stat"><span class="k">所持金</span><span class="v num" id="s-gold">600</span></span>
+    <span class="stat"><span class="k">迷宮</span><span class="v num" id="s-depth" style="font-size:12px">推定 1 階</span></span>
+    <span class="stat"><span class="k">所持金</span><span class="v num" id="s-gold">1,000</span></span>
     <span class="stat"><span class="k">目利き</span><span class="v num" id="s-eye">0</span></span>
   </div>
 </header>
@@ -206,7 +207,7 @@
   <p class="foreword">
     <span class="mincho">第一章　店</span>
     迷宮から上がってきた者が、戸を叩く。名も知れぬ品を差し出して、値を待っている。
-    こちらにできるのは見立てることだけで、見立ては大抵外れる。<strong id="goal-line">12週のうちに 2,500 G</strong> まで積めば、この店は続く。
+    こちらにできるのは見立てることだけで、見立ては大抵外れる。<strong id="goal-line">12週のうちに 1,800 G</strong> まで積めば、この店は続く。
   </p>
 
   <section>
@@ -260,38 +261,48 @@
     {n:"半兜",c:"兜",v:40,t:0},
     {n:"革鎧",c:"鎧",v:50,t:0},
     {n:"鎖帷子",c:"鎧",v:90,t:0},
-    // 迷宮産
-    {n:"銀朱の短剣",c:"短剣",v:420,t:1},
-    {n:"石工の小手",c:"小手",v:640,t:1},
-    {n:"無音の靴",c:"靴",v:780,t:1},
-    {n:"霜降りの長剣",c:"長剣",v:900,t:1},
-    {n:"深層の外套",c:"外套",v:1150,t:1},
-    {n:"蒼鉛の胸当",c:"鎧",v:1500,t:1},
-    {n:"骨細工の護符",c:"護符",v:1600,t:1},
-    {n:"燐光の指環",c:"指環",v:2200,t:1},
-    // 深層
-    {n:"竜鱗の盾",c:"盾",v:3400,t:2},
-    {n:"黙示の兜",c:"兜",v:4100,t:2},
-    {n:"影縫いの刃",c:"短剣",v:5200,t:2},
+    // 迷宮産。f = 出てくる階。
+    {n:"銀朱の短剣",c:"短剣",v:420,t:1,f:1},
+    {n:"石工の小手",c:"小手",v:640,t:1,f:1},
+    {n:"灰鉄の戦斧",c:"斧槌",v:700,t:1,f:1},
+    {n:"無音の靴",c:"靴",v:780,t:1,f:2},
+    {n:"霜降りの長剣",c:"長剣",v:900,t:1,f:2},
+    {n:"深層の外套",c:"外套",v:1150,t:1,f:2},
+    {n:"星読みの杖",c:"杖",v:1300,t:1,f:3},
+    {n:"蒼鉛の胸当",c:"鎧",v:1500,t:1,f:3},
+    {n:"骨細工の護符",c:"護符",v:1600,t:1,f:3},
+    {n:"燐光の指環",c:"指環",v:2200,t:1,f:3},
+    {n:"竜鱗の盾",c:"盾",v:3400,t:1,f:4},
+    {n:"竜骨の大剣",c:"長剣",v:3900,t:1,f:4},
+    {n:"黙示の兜",c:"兜",v:4100,t:1,f:4},
+    {n:"影縫いの刃",c:"短剣",v:5200,t:1,f:5},
+    {n:"終末の長剣",c:"長剣",v:6500,t:1,f:5},
     // 呪物
-    {n:"泣き笑いの剣",c:"長剣",v:0,look:900,x:1,t:1},
-    {n:"錆喰いの鎖",c:"鎧",v:0,look:1200,x:1,t:1},
-    {n:"宿酔の兜",c:"兜",v:0,look:700,x:1,t:1},
-    {n:"呪詛の法衣",c:"外套",v:0,look:1000,x:1,t:1},
-    {n:"死人指の環",c:"指環",v:0,look:1800,x:1,t:2}
+    {n:"宿酔の兜",c:"兜",v:0,look:700,x:1,t:1,f:1},
+    {n:"泣き笑いの剣",c:"長剣",v:0,look:900,x:1,t:1,f:2},
+    {n:"呪詛の法衣",c:"外套",v:0,look:1000,x:1,t:1,f:2},
+    {n:"錆喰いの鎖",c:"鎧",v:0,look:1200,x:1,t:1,f:3},
+    {n:"死人指の環",c:"指環",v:0,look:1800,x:1,t:1,f:4}
   ];
 
   // 未鑑定品の「相場」。あちらの言い値はここから引く。
   var CAT_BASE = {短剣:300,長剣:400,斧槌:300,盾:350,鎧:500,兜:350,外套:400,指環:600,護符:500,靴:300,小手:300,杖:250,薬:100};
 
   var PEOPLE = [
-    {id:"kai", n:"カイ",       d:"浅い階しか潜らない若い剣士。毎週来る。", tier:[0,0,0,1], cnt:[1,2], rel:0},
-    {id:"duna",n:"ドゥナ",     d:"古参。目が利くので買い叩けない。",       tier:[0,1,1],   cnt:[1,2], rel:0},
-    {id:"yan", n:"六指のヤン", d:"素性が知れない。掴まされる率が高い。",   tier:[0,1,1,1], cnt:[1,2], rel:0},
-    {id:"mira",n:"灰のミラ",   d:"深層まで行ける唯一の腕。来ない週もある。",tier:[1,1,2],   cnt:[1,1], rel:0}
+    {id:"kai", n:"カイ",       d:"浅い階しか潜らない若い剣士。毎週来る。", tier:[0,0,0,1], reach:1,  cnt:[1,2], rel:0},
+    {id:"duna",n:"ドゥナ",     d:"古参。目が利くので買い叩けない。",       tier:[0,1,1],   reach:2,  cnt:[1,2], rel:0},
+    {id:"yan", n:"六指のヤン", d:"素性が知れない。掴まされる率が高い。",   tier:[0,1,1,1], reach:2,  cnt:[1,2], rel:0},
+    {id:"mira",n:"灰のミラ",   d:"深層まで行ける唯一の腕。来ない週もある。",tier:[1,1,1],   reach:99, cnt:[1,1], rel:0}
   ];
 
-  var RENT = 45, WAGE = 30, GOAL = 2500, WEEKS = 12;
+  var RENT = 45, WAGE = 30, START_GOLD = 1000, GOAL = 1800, WEEKS = 12;
+
+  // 迷宮の攻略度。武器が売れる(店頭・市場)たびに、威力に比例した確率で冒険者が一階深く潜る。
+  // 持ち込まれる迷宮産の品の階は「その人が探索している階 + ずれ」。ずれは 0 が最多で、+1・+2 はごく稀。
+  var MAXFLOOR = 6;                 // 攻略度の上限(最深)
+  var POWER_SCALE = 1500;           // 武器の正価 / この値 = 一階進む確率(上限 0.6)
+  var SHIFT1 = 0.09, SHIFT2 = 0.01; // 探索階より 1 階・2 階深い品が混じる率
+  var WEAPON = {短剣:1, 長剣:1, 斧槌:1, 杖:1};
 
   // 難易度。hit = 目利き Lv0 のとき、未鑑定の品を「丸ごと読み違えない」率。
   // 段が上がるごとに +6 ポイント(従来どおり)。誤差の幅と呪いに気づく率は難易度で変えない。
@@ -311,7 +322,7 @@
     var df = diffOf(diffId) || diffOf("normal");
     return {
       diff:df.id, hit0:df.hit,
-      week:1, gold:600, exp:0,
+      week:1, gold:START_GOLD, goal:GOAL, depth:1, estOff:0, exp:0,
       people:PEOPLE.map(function(p){return {id:p.id, rel:0};}),
       offers:[], stock:[], report:null, over:null, seen:{}
     };
@@ -333,13 +344,35 @@
   function person(id){ for(var i=0;i<PEOPLE.length;i++) if(PEOPLE[i].id===id) return PEOPLE[i]; }
   function rel(id){ for(var i=0;i<S.people.length;i++) if(S.people[i].id===id) return S.people[i]; }
 
+  /* ========== 迷宮の階 ========== */
+  // 探索階 + ずれ の階の品を引く。その階に品が無ければ、浅いほうへ探す。
+  function pickDungeon(p){
+    var e = Math.min(S.depth, p.reach);
+    var r = Math.random();
+    var f = e + (r < SHIFT2 ? 2 : (r < SHIFT2 + SHIFT1 ? 1 : 0));
+    for(; f >= 1; f--){
+      var pool = ITEMS.filter(function(x){ return x.f === f; });
+      if(pool.length) return pick(pool);
+    }
+    return pick(ITEMS.filter(function(x){ return x.f === 1; }));
+  }
+
+  // 品が店の外へ出た(店頭で売れた・市場へ流した)。武器なら、買った誰かが一階深く潜るかもしれない。
+  function circulate(item){
+    if(item.x || !WEAPON[item.c]) return;
+    if(S.depth < MAXFLOOR && Math.random() < Math.min(0.6, item.v / POWER_SCALE)) S.depth += 1;
+  }
+  // 画面に出すのは幅のある推定だけ(真の階は見せない)。推定は週の締めごとに引き直す。
+  function depthEst(){
+    var lo = Math.max(1, S.depth + S.estOff - 1), hi = Math.min(MAXFLOOR, S.depth + S.estOff + 1);
+    return "推定 " + (lo === hi ? lo : lo + "〜" + hi) + " 階";
+  }
+
   /* ========== 週の持ち込みを組む ========== */
   function makeOffer(pid){
     var p = person(pid), r = rel(pid);
     var tier = pick(p.tier);
-    var pool = ITEMS.filter(function(it){ return it.t === tier; });
-    if(!pool.length) pool = ITEMS;
-    var it = pick(pool);
+    var it = tier === 0 ? pick(ITEMS.filter(function(x){ return x.t === 0; })) : pickDungeon(p);
 
     // 未鑑定かどうか。地上産の量産品は鑑定済みで持ち込まれる。呪物は必ず未鑑定。
     var unknown = it.x ? true : (it.t === 0 ? Math.random() < 0.15 : Math.random() < 0.85);
@@ -478,6 +511,7 @@
       msg = "市場へ。" + g(take) + " G。";
     }
     S.gold += take;
+    circulate(st.item);
     S.stock.splice(i,1);
     note(msg); render(); save();
   }
@@ -510,6 +544,7 @@
       if(Math.random() < sellChance(st.shelf, st.item.v)){
         income += st.shelf;
         lines.push({t:"店頭 ― " + st.item.n, a:st.shelf, s:1});
+        circulate(st.item);
         S.stock.splice(i,1);
       }
     }
@@ -521,10 +556,11 @@
 
     S.report = {week:S.week, lines:lines, net:income - RENT - WAGE};
     S.week += 1;
+    S.estOff = pick([-1, 0, 0, 1]);
 
     if(S.gold < 0){ S.over = {win:false, why:"金が尽きた。"}; }
-    else if(S.gold >= GOAL){ S.over = {win:true, why:"店は続く。"}; }
-    else if(S.week > WEEKS){ S.over = {win:false, why:"期日が来た。" + g(GOAL) + " G に届かなかった。"}; }
+    else if(S.gold >= S.goal){ S.over = {win:true, why:"店は続く。"}; }
+    else if(S.week > WEEKS){ S.over = {win:false, why:"期日が来た。" + g(S.goal) + " G に届かなかった。"}; }
     else { newWeek(); }
 
     render(); save();
@@ -718,13 +754,14 @@
     gv.className = "v num" + (S.gold < 0 ? " neg" : "");
     document.getElementById("s-eye").textContent = lv();
     document.getElementById("goal-line").innerHTML =
-      WEEKS + "週のうちに " + g(GOAL) + " G";
+      WEEKS + "週のうちに " + g(S.goal) + " G";
+    document.getElementById("s-depth").textContent = depthEst();
 
     renderOffers(); renderStock(); renderReport(); renderEye();
 
     var hint = document.getElementById("foot-hint");
     var remain = WEEKS - S.week + 1;
-    hint.textContent = msg || ("残り " + remain + " 週。目標まで " + g(Math.max(0, GOAL - S.gold)) + " G。");
+    hint.textContent = msg || ("残り " + remain + " 週。目標まで " + g(Math.max(0, S.goal - S.gold)) + " G。");
     msg = "";
 
     renderOver();
@@ -789,6 +826,9 @@
       S = d.s; uid = d.u || 1;
       // 難易度を入れる前のセーブ。数字を黙って変えない: 当時の率のまま続けさせる
       if(typeof S.hit0 !== "number"){ S.hit0 = LEGACY_HIT; S.diff = "legacy"; }
+      // 攻略度を入れる前のセーブ。目標は当時の額のまま続ける(黙って変えない)
+      if(typeof S.goal !== "number") S.goal = 2500;
+      if(typeof S.depth !== "number"){ S.depth = 1; S.estOff = 0; }
       // アイテム参照を復元（保存時はオブジェクトのコピーになっている）
       return true;
     }catch(e){ return false; }
